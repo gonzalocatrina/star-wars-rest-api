@@ -1,0 +1,66 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Cron } from '@nestjs/schedule';
+import axios from 'axios';
+import { Film } from '../entities/film.entity';
+import { Starship } from '../entities/starship.entity';
+import { People } from '../entities/people.entity';
+import {  Model } from 'mongoose';
+import { Planet } from '../entities/planet.entity';
+
+@Injectable()
+export class SyncronizeDatabaseService {
+  private readonly logger = new Logger(SyncronizeDatabaseService.name);
+  constructor(
+  @InjectModel(Film.name) private filmModel: Model<Film>,
+  @InjectModel(Starship.name) private startshipModel: Model<Starship>,
+  @InjectModel(People.name) private peopleModel: Model<People>,
+  @InjectModel(Planet.name) private planetModel: Model<Planet>) {}
+  //Cron runs 10 seconds after the app started
+  @Cron(new Date(Date.now() + 10 * 1000))
+  async handleCron() {
+    const initialUrl = 'https://swapi.dev/api/';
+    await Promise.all([this.updateDatabase(initialUrl,'films/',this.filmModel),
+    this.updateDatabase(initialUrl,'starships/',this.startshipModel),
+    this.updateDatabase(initialUrl,'people/',this.peopleModel),
+    this.updateDatabase(initialUrl,'planets/',this.planetModel)])
+    this.logger.debug('Database is up to date');
+  }
+  async updateDatabase(baseUrl: string,paramUrl: string,model:any){
+    const results = await this.getAllResults(baseUrl+paramUrl);
+    this.logger.debug('Results to create/update from ' + baseUrl+paramUrl + ' is: '+ results.length);
+    await this.database(results,model)
+    this.logger.debug('Updated database from ', baseUrl+paramUrl);
+  }
+  async fetchData(url: string) {
+      try {
+      const response = await axios.get(url);
+      return response.data;
+      } catch (error) {
+      this.logger.error('Error fetching data from '+ url, error);
+      throw new Error("Error fetching data from " + url);
+      }
+  }
+  async getAllResults(url, allResults = []) {
+      try {
+      const data = await this.fetchData(url);
+      const updatedResults = allResults.concat(data.results);
+
+      return data.next ? this.getAllResults(data.next, updatedResults) : updatedResults;
+      } catch (error) {
+      console.error('Error en la operación principal:', error);
+      throw error;
+      }
+    }
+    async database(results:any, model){
+    await Promise.all(results.map(async (result) => {
+      const itExists = await model.findOneAndUpdate({ name: result.name }, result).exec();
+      if (!itExists) {
+        const newModel = new model(result);
+        await newModel.save();
+      }
+    }));
+    }
+    async databaseForFilms(results:any, model){
+    }
+}
