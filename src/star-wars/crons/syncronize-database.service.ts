@@ -52,15 +52,15 @@ export class SyncronizeDatabaseService {
       throw error;
       }
     }
-    async database(results:any[], model:Model<any>, uniqueField: string = 'name'){
-      await Promise.all(results.map(async (result) => {
-        const query = {};
-        query[uniqueField] = result[uniqueField];
-        const itExists = await model.findOneAndUpdate(query, result).exec();
-        if (!itExists) {
-          const newModel = new model(result);
-          await newModel.save();
-        }
-      }));
-    }
+  async database(results:any[], model:Model<any>, uniqueField: string = 'name'){
+    await Promise.all(results.map(async (result) => {
+      const query = {};
+      query[uniqueField] = result[uniqueField];
+      const itExists = await model.findOneAndUpdate(query, result).exec();
+      if (!itExists) {
+        const newModel = new model(result);
+        await newModel.save();
+      }
+    }));
+  }
 }
