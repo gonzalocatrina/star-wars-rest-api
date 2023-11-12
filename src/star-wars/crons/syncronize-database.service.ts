@@ -13,23 +13,23 @@ export class SyncronizeDatabaseService {
   private readonly logger = new Logger(SyncronizeDatabaseService.name);
   constructor(
   @InjectModel(Film.name) private filmModel: Model<Film>,
-  @InjectModel(Starship.name) private startshipModel: Model<Starship>,
+  @InjectModel(Starship.name) private starshipModel: Model<Starship>,
   @InjectModel(People.name) private peopleModel: Model<People>,
   @InjectModel(Planet.name) private planetModel: Model<Planet>) {}
   //Cron runs 10 seconds after the app started
   @Cron(new Date(Date.now() + 10 * 1000))
   async handleCron() {
     const initialUrl = 'https://swapi.dev/api/';
-    await Promise.all([this.updateDatabase(initialUrl,'films/',this.filmModel),
-    this.updateDatabase(initialUrl,'starships/',this.startshipModel),
+    await Promise.all([this.updateDatabase(initialUrl,'films/',this.filmModel, 'title'),
+    this.updateDatabase(initialUrl,'starships/',this.starshipModel),
     this.updateDatabase(initialUrl,'people/',this.peopleModel),
     this.updateDatabase(initialUrl,'planets/',this.planetModel)])
     this.logger.debug('Database is up to date');
   }
-  async updateDatabase(baseUrl: string,paramUrl: string,model:any){
+  async updateDatabase(baseUrl: string,paramUrl: string,model:any, uniqueField?:string){
     const results = await this.getAllResults(baseUrl+paramUrl);
     this.logger.debug('Results to create/update from ' + baseUrl+paramUrl + ' is: '+ results.length);
-    await this.database(results,model)
+    await this.database(results,model, uniqueField)
     this.logger.debug('Updated database from ', baseUrl+paramUrl);
   }
   async fetchData(url: string) {
@@ -41,7 +41,7 @@ export class SyncronizeDatabaseService {
       throw new Error("Error fetching data from " + url);
       }
   }
-  async getAllResults(url, allResults = []) {
+  async getAllResults(url: string, allResults = []) {
       try {
       const data = await this.fetchData(url);
       const updatedResults = allResults.concat(data.results);
@@ -52,15 +52,15 @@ export class SyncronizeDatabaseService {
       throw error;
       }
     }
-    async database(results:any, model){
-    await Promise.all(results.map(async (result) => {
-      const itExists = await model.findOneAndUpdate({ name: result.name }, result).exec();
-      if (!itExists) {
-        const newModel = new model(result);
-        await newModel.save();
-      }
-    }));
-    }
-    async databaseForFilms(results:any, model){
+    async database(results:any[], model:Model<any>, uniqueField: string = 'name'){
+      await Promise.all(results.map(async (result) => {
+        const query = {};
+        query[uniqueField] = result[uniqueField];
+        const itExists = await model.findOneAndUpdate(query, result).exec();
+        if (!itExists) {
+          const newModel = new model(result);
+          await newModel.save();
+        }
+      }));
     }
 }
