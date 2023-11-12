@@ -30,18 +30,29 @@ export class StarWarsService {
     return this.starshipModel.find(filter).exec();
   }
 
-  async findPeople(name?: string): Promise<People[]> {
+  async findPeople(name?: string, gender?: string, eyeColor?: string): Promise<People[]> {
     let filter = {};
+
     if (name) {
-      filter = { name: new RegExp(name, 'i') };
+      filter['name'] = new RegExp(name, 'i');
+    }
+    if (gender) {
+      filter['gender'] = gender;
+    }
+    if (eyeColor) {
+      filter['eye_color'] = eyeColor;
     }
     return this.peopleModel.find(filter).exec();
   }
 
-  async findPlanets(name?: string): Promise<Planet[]> {
+
+  async findPlanets(name?: string, population?: string): Promise<Planet[]> {
     let filter = {};
     if (name) {
-      filter = { name: new RegExp(name, 'i') };
+      filter['name'] = new RegExp(name, 'i');
+    }
+    if (population) {
+      filter['population'] = population;
     }
     return this.planetModel.find(filter).exec();
   }

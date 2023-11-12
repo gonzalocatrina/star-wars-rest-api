@@ -16,12 +16,16 @@ export class StarWarsController {
   }
 
   @Get('people')
-  async getPeople(@Query('name') name?: string) {
-    return this.starWarsService.findPeople(name);
+  async getPeople(
+    @Query('name') name?: string,
+    @Query('gender') gender?: string,
+    @Query('eyeColor') eyeColor?: string
+  ) {
+    return this.starWarsService.findPeople(name, gender, eyeColor);
   }
 
   @Get('planets')
-  async getPlanets(@Query('name') name?: string) {
-    return this.starWarsService.findPlanets(name);
+  async getPlanets(@Query('name') name?: string, @Query('population') population?: string) {
+    return this.starWarsService.findPlanets(name,population);
   }
 }
