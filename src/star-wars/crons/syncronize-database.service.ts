@@ -48,7 +48,7 @@ export class SyncronizeDatabaseService {
 
       return data.next ? this.getAllResults(data.next, updatedResults) : updatedResults;
       } catch (error) {
-      console.error('Error en la operación principal:', error);
+      console.error('Error getting all results: ', error);
       throw error;
       }
     }

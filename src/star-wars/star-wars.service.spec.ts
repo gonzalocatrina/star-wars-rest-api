@@ -128,6 +128,7 @@ describe('StarWarsService', () => {
   });
 
   describe('findPeople', () => {
+
     it('should return an array of people', async () => {
       const result = [{ name: 'Luke Skywalker' }, { name: 'Darth Vader' }];
       mockPeopleModel.find().exec.mockResolvedValue(result);
@@ -150,6 +151,39 @@ describe('StarWarsService', () => {
       expect(await service.findPeople('Luke')).toEqual(result);
       expect(mockPeopleModel.find).toHaveBeenCalledWith({ name: expect.any(RegExp) });
     });
+
+    it('should return filtered people by gender', async () => {
+      const result = [{ name: 'Leia Organa', gender: 'female' }];
+      mockPeopleModel.find().exec.mockResolvedValue(result);
+
+      expect(await service.findPeople(undefined, 'female')).toEqual(result);
+      expect(mockPeopleModel.find).toHaveBeenCalledWith({ gender: 'female' });
+    });
+
+    it('should return filtered people by eye color', async () => {
+      const result = [{ name: 'Luke Skywalker', eye_color: 'blue' }];
+      mockPeopleModel.find.mockImplementation((query: { eye_color: string }) => {
+        return {
+          exec: jest.fn().mockResolvedValue(result.filter(person => person.eye_color === query.eye_color)),
+        };
+      });
+
+      expect(await service.findPeople(undefined, undefined, 'blue')).toEqual(result);
+      expect(mockPeopleModel.find).toHaveBeenCalledWith({ eye_color: 'blue' });
+    });
+
+    it('should return filtered people by both gender and eye color', async () => {
+      const result = [{ name: 'Anakin Skywalker', gender: 'male', eye_color: 'blue' }];
+      mockPeopleModel.find.mockImplementation((query: { gender: string, eye_color: string }) => {
+        return {
+          exec: jest.fn().mockResolvedValue(result.filter(person => person.gender === query.gender && person.eye_color === query.eye_color)),
+        };
+      });
+
+      expect(await service.findPeople(undefined, 'male', 'blue')).toEqual(result);
+      expect(mockPeopleModel.find).toHaveBeenCalledWith({ gender: 'male', eye_color: 'blue' });
+    });
+
   });
 
   describe('findPlanets', () => {
