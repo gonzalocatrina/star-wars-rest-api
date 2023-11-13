@@ -19,7 +19,7 @@ export class SyncronizeDatabaseService {
   //Cron runs 10 seconds after the app started
   @Cron(new Date(Date.now() + 10 * 1000))
   async handleCron() {
-    const initialUrl = 'https://swapi.dev/api/';
+    const initialUrl = process.env.SWAPI_URL;
     await Promise.all([this.updateDatabase(initialUrl,'films/',this.filmModel, 'title'),
     this.updateDatabase(initialUrl,'starships/',this.starshipModel),
     this.updateDatabase(initialUrl,'people/',this.peopleModel),
