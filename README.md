@@ -25,6 +25,8 @@ Este test va a estar evaluado de la siguiente manera:
 
 ```bash
 $ npm install
+
+$ npm run build
 ```
 
 ## Running the app
@@ -45,9 +47,6 @@ $ npm run start:prod
 ```bash
 # unit tests
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
